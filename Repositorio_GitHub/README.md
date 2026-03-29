@@ -1,6 +1,6 @@
 # Repositório: Fortran Avançado & Biblioteca SuperDiFF v3.0
 
-Este repositório contém o ecossistema completo de códigos para o manuscrito **"Fortran Avançado: 
+Este repositório contém o ecossistema completo de códigos para o manuscrito Fortran Avançado: 
 ## 🚀 Conteúdo do Repositório
 
 ### 1. Biblioteca SuperDiFF (v3.0 Turbo)
