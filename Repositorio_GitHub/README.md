@@ -42,7 +42,7 @@ pdflatex main.tex
 ## 📜 Licença e Créditos
 **Autor**: Luiz Tiago Wilcke
 **Ano**: 2026
-**Linguagem de Variáveis**: Todos os códigos utilizam nomes de variáveis rigorosamente em **Português**, seguindo o padrão pedagógico do manuscrito.
+
 
 ---
 *Este trabalho é parte da expansão enciclopédica do conhecimento científico computacional.*
