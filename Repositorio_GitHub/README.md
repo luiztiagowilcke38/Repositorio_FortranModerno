@@ -1,7 +1,6 @@
 # Repositório: Fortran Avançado & Biblioteca SuperDiFF v3.0
 
-Este repositório contém o ecossistema completo de códigos para o manuscrito **"Fortran Avançado: Enciclopédia Doctoral de Modelagem e Soluções Científicas"**, de autoria de **Luiz Tiago Wilcke**.
-
+Este repositório contém o ecossistema completo de códigos para o manuscrito **"Fortran Avançado: 
 ## 🚀 Conteúdo do Repositório
 
 ### 1. Biblioteca SuperDiFF (v3.0 Turbo)
