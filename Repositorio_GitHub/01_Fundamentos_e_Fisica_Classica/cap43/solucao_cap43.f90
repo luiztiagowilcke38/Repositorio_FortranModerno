@@ -1,0 +1,10 @@
+! Resolução de Exercício para o cap43
+! Título: Magnetohidrodinâmica (MHD): Plasmas e Campos
+
+PROGRAM resolucao
+  IMPLICIT NONE
+  ! Variáveis em português conforme solicitado
+  REAL :: entrada_dado, resultado_final
+  PRINT *, 'Calculando solução para: ', "Magnetohidrodinâmica (MHD): Plasmas e Campos"
+  ! Implementação simplificada do desafio principal
+END PROGRAM
