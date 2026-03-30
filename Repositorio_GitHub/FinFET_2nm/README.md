@@ -1,6 +1,6 @@
 # FinFET 2nm Physical Simulator (NEGF + Poisson-Schrödinger)
 
-Este diretório contém a implementação completa de um simulador físico para um nanotransistor FinFET de 2 nm, desenvolvido em Fortran Moderno (2008/2018). Este código acompanha o Capítulo correspondente no livro "Fortran Moderno para Computação Científica"
+Este diretório contém a implementação completa de um simulador físico para um nanotransistor FinFET de 2 nm, desenvolvido em Fortran Moderno (2008/2018). Este código acompanha o Capítulo correspondente no livro Fortran Avançado
 
 - **mod_constantes.f90**: Parâmetros físicos universais e dimensões geométricas do FinFET (escala de 2 nm).
 - **mod_malha.f90**: Geração e gerenciamento da malha de discretização 3D.
