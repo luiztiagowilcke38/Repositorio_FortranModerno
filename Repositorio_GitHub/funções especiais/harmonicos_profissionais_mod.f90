@@ -2,83 +2,76 @@ MODULE harmonicos_profissionais_mod
   USE iso_fortran_env, ONLY: real64
   IMPLICIT NONE
   
-  REAL(real64), PARAMETER :: VALOR_PI = 3.14159265358979323846_real64
+  REAL(real64), PARAMETER :: VALOR_PI = 3.141592653589793238_real64
 
 CONTAINS
 
-  ! Calcula o Harmônico Esférico Y_lm renormalizado
-  SUBROUTINE avaliar_harmonico_esferico(grau_l, ordem_m, coord_teta, coord_fi, &
-                                        parte_real, parte_imag)
+  ! Calcula o Harmonico Esferico Y_lm completo
+  SUBROUTINE avaliar_ylm_completo(grau_l, ordem_m, theta_coord, fi_coord, &
+                                  y_real, y_imag)
     INTEGER, INTENT(IN) :: grau_l, ordem_m
-    REAL(real64), INTENT(IN) :: coord_teta, coord_fi
-    REAL(real64), INTENT(OUT) :: parte_real, parte_imag
-    REAL(real64) :: normalizacao, leg_assoc, cosseno_teta, m_fi_local
-    REAL(real64) :: termo_log_fact
+    REAL(real64), INTENT(IN) :: theta_coord, fi_coord
+    REAL(real64), INTENT(OUT) :: y_real, y_imag
+    REAL(real64) :: norm_f, p_lm, cosseno_t, m_fi
     
-    cosseno_teta = COS(coord_teta)
-    leg_assoc = calcular_legendre_mestre(grau_l, ABS(ordem_m), cosseno_teta)
+    cosseno_t = COS(theta_coord)
+    p_lm = calcular_legendre_estavel(grau_l, ABS(ordem_m), cosseno_t)
     
-    ! Calculo da normalizacao via log-fatorial para evitar overflow em l > 100
-    termo_log_fact = log_fatorial_seguro(grau_l - ABS(ordem_m)) - &
-                     log_fatorial_seguro(grau_l + ABS(ordem_m))
+    ! Fator de normalizacao com log-fatorial para evitar estouro
+    norm_f = SQRT(((2*grau_l + 1) / (4.0_real64 * VALOR_PI)) * &
+             EXP(log_fatoreal(grau_l - ABS(ordem_m)) - log_fatoreal(grau_l + ABS(ordem_m))))
     
-    normalizacao = SQRT(((2*grau_l + 1) / (4.0_real64 * VALOR_PI)) * EXP(termo_log_fact))
+    m_fi = REAL(ordem_m, real64) * fi_coord
+    y_real = norm_f * p_lm * COS(m_fi)
+    y_imag = norm_f * p_lm * SIN(m_fi)
     
-    m_fi_local = REAL(ordem_m, real64) * coord_fi
-    parte_real = normalizacao * leg_assoc * COS(m_fi_local)
-    parte_imag = normalizacao * leg_assoc * SIN(m_fi_local)
-    
-    ! Ajuste de paridade de Condon-Shortley
     IF (ordem_m < 0 .AND. MOD(ABS(ordem_m), 2) /= 0) THEN
-      parte_real = -parte_real; parte_imag = -parte_imag
+      y_real = -y_real; y_imag = -y_imag
     END IF
-  END SUBROUTINE avaliar_harmonico_esferico
+  END SUBROUTINE avaliar_ylm_completo
 
-  ! Polinomio de Legendre P_lm via algoritmo de recorrencia estavel
-  FUNCTION calcular_legendre_mestre(l, m, x_val) RESULT(polm)
+  ! Algoritmo de Recorrencia de Legendre sem placeholders
+  FUNCTION calcular_legendre_estavel(l, m, x) RESULT(plm)
     INTEGER, INTENT(IN) :: l, m
-    REAL(real64), INTENT(IN) :: x_val
-    REAL(real64) :: polm, p_m_m, p_m_m_mais1, sen_teta, termo_fatorial
-    INTEGER :: k, ll
+    REAL(real64), INTENT(IN) :: x
+    REAL(real64) :: plm, p_mm, p_mmp1, somx2, fat
+    INTEGER :: j, ll
     
-    ! Caso base dependente de (sen theta)^m
-    p_m_m = 1.0_real64
+    p_mm = 1.0_real64
     IF (m > 0) THEN
-      sen_teta = SQRT((1.0_real64 - x_val) * (1.0_real64 + x_val))
-      termo_fatorial = 1.0_real64
-      DO k = 1, m
-        p_m_m = -p_m_m * termo_fatorial * sen_teta
-        termo_fatorial = termo_fatorial + 2.0_real64
+      somx2 = SQRT((1.0_real64 - x) * (1.0_real64 + x))
+      fat = 1.0_real64
+      DO j = 1, m
+        p_mm = -p_mm * fat * somx2
+        fat = fat + 2.0_real64
       END DO
     END IF
     
     IF (l == m) THEN
-      polm = p_m_m
+      plm = p_mm
     ELSE
-      p_m_m_mais1 = x_val * (2*m + 1) * p_m_m
+      p_mmp1 = x * (2*m + 1) * p_mm
       IF (l == m + 1) THEN
-        polm = p_m_m_mais1
+        plm = p_mmp1
       ELSE
-        ! Algoritmo de tres termos para l > m+1
         DO ll = m + 2, l
-          polm = (x_val * (2*ll - 1) * p_m_m_mais1 - (ll + m - 1) * p_m_m) / (ll - m)
-          p_m_m = p_m_m_mais1
-          p_m_m_mais1 = polm
+          plm = (x * (2*ll - 1) * p_mmp1 - (ll + m - 1) * p_mm) / (ll - m)
+          p_mm = p_mmp1
+          p_mmp1 = plm
         END DO
       END IF
     END IF
-  END FUNCTION calcular_legendre_mestre
+  END FUNCTION calcular_legendre_estavel
 
-  ! Funcao Log-Fatorial para grandes argumentos
-  FUNCTION log_fatorial_seguro(valor_n) RESULT(res_log)
-    INTEGER, INTENT(IN) :: valor_n
-    REAL(real64) :: res_log
-    INTEGER :: idx
-    res_log = 0.0_real64
-    IF (valor_n <= 1) RETURN
-    DO idx = 2, valor_n
-      res_log = res_log + LOG(REAL(idx, real64))
+  FUNCTION log_fatoreal(n_ent) RESULT(log_f)
+    INTEGER, INTENT(IN) :: n_ent
+    REAL(real64) :: log_f
+    INTEGER :: i
+    log_f = 0.0_real64
+    IF (n_ent <= 1) RETURN
+    DO i = 2, n_ent
+      log_f = log_f + LOG(REAL(i, real64))
     END DO
-  END FUNCTION log_fatorial_seguro
+  END FUNCTION log_fatoreal
 
 END MODULE harmonicos_profissionais_mod
