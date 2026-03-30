@@ -4,10 +4,9 @@ MODULE ordenacao_avancada_mod
 
 CONTAINS
 
-  ! Algoritmo Heapsort Profissional COMPLETO
   SUBROUTINE heapsort_vetor(vetor_dados)
     REAL(real64), DIMENSION(:), INTENT(INOUT) :: vetor_dados
-    INTEGER(int32) :: n_tam, i_p, j_p
+    INTEGER(int32) :: n_tam, i_p
     REAL(real64) :: aux
     
     n_tam = SIZE(vetor_dados)
@@ -39,7 +38,6 @@ CONTAINS
     v(i) = tmp
   END SUBROUTINE organizar_heap
 
-  ! Quickselect COMPLETO: Estatistica de Ordem Linear Medio
   FUNCTION selecionar_kesimo_final(vetor_ref, k_desejado) RESULT(res_k)
     REAL(real64), DIMENSION(:), INTENT(IN) :: vetor_ref
     INTEGER(int32), INTENT(IN) :: k_desejado

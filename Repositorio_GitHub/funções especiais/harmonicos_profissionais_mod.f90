@@ -2,11 +2,10 @@ MODULE harmonicos_profissionais_mod
   USE iso_fortran_env, ONLY: real64
   IMPLICIT NONE
   
-  REAL(real64), PARAMETER :: VALOR_PI = 3.141592653589793238_real64
+  REAL(real64), PARAMETER :: VALOR_PI = 3.14159265358979323846_real64
 
 CONTAINS
 
-  ! Calcula o Harmonico Esferico Y_lm completo
   SUBROUTINE avaliar_ylm_completo(grau_l, ordem_m, theta_coord, fi_coord, &
                                   y_real, y_imag)
     INTEGER, INTENT(IN) :: grau_l, ordem_m
@@ -17,7 +16,6 @@ CONTAINS
     cosseno_t = COS(theta_coord)
     p_lm = calcular_legendre_estavel(grau_l, ABS(ordem_m), cosseno_t)
     
-    ! Fator de normalizacao com log-fatorial para evitar estouro
     norm_f = SQRT(((2*grau_l + 1) / (4.0_real64 * VALOR_PI)) * &
              EXP(log_fatoreal(grau_l - ABS(ordem_m)) - log_fatoreal(grau_l + ABS(ordem_m))))
     
@@ -30,7 +28,6 @@ CONTAINS
     END IF
   END SUBROUTINE avaliar_ylm_completo
 
-  ! Algoritmo de Recorrencia de Legendre sem placeholders
   FUNCTION calcular_legendre_estavel(l, m, x) RESULT(plm)
     INTEGER, INTENT(IN) :: l, m
     REAL(real64), INTENT(IN) :: x

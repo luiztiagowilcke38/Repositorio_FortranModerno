@@ -4,11 +4,10 @@ MODULE elipticas_avancadas_mod
   
 CONTAINS
 
-  ! Calcula sn, cn e dn simultaneamente para um modulo m
   SUBROUTINE jacobi_mestre_portugues(u_entrada, m_modulo, sn_saida, cn_saida, dn_saida)
     REAL(real64), INTENT(IN) :: u_entrada, m_modulo
     REAL(real64), INTENT(OUT) :: sn_saida, cn_saida, dn_saida
-    REAL(real64) :: a_atual, b_atual, c_atual, d_aux, phi_amplitude, t_aux
+    REAL(real64) :: a_atual, b_atual, c_atual, phi_amplitude, t_aux
     REAL(real64), DIMENSION(20) :: seq_a, seq_c
     INTEGER :: idx, n_convergencia
     

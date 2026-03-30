@@ -2,68 +2,76 @@ MODULE integrais_avancadas_mod
   USE iso_fortran_env, ONLY: real64
   IMPLICIT NONE
   
-  REAL(real64), PARAMETER :: VALOR_PI = 3.141592653589793238_real64
-  REAL(real64), PARAMETER :: GAMMA_EULER = 0.5772156649015328_real64
-  REAL(real64), PARAMETER :: TOL_PRECISAO = 1.0E-15_real64
+  REAL(real64), PARAMETER :: PI = 3.14159265358979323846_real64
+  REAL(real64), PARAMETER :: EPS = 1.0E-15_real64
+  REAL(real64), PARAMETER :: FPMIN = 1.0E-30_real64
 
 CONTAINS
 
-  ! Calcula S(x) e C(x) simultaneamente
-  SUBROUTINE calcular_fresnel_total(entrada_x, s_saida, c_saida)
-    REAL(real64), INTENT(IN) :: entrada_x
-    REAL(real64), INTENT(OUT) :: s_saida, c_saida
-    REAL(real64) :: x_abs, x2, t_aux, termo, soma_s, soma_c, f_h, g_h, angulo
+  SUBROUTINE calcular_fresnel_total(x, s, c)
+    REAL(real64), INTENT(IN) :: x; REAL(real64), INTENT(OUT) :: s, c
+    REAL(real64) :: abs_x, x2, t, f, g, ang, soma_s, soma_c, termo
     INTEGER :: k
-    
-    x_abs = ABS(entrada_x)
-    IF (x_abs < 1.5_real64) THEN
-      ! Series de Taylor para x pequeno
-      soma_s = 0.0; soma_c = x_abs; x2 = x_abs*x_abs; t_aux = (VALOR_PI/2.0)*x2; termo = x_abs
+    abs_x = ABS(x)
+    IF (abs_x < 1.5_real64) THEN
+      soma_s = 0.0_real64; soma_c = abs_x; x2 = abs_x*abs_x; t = (PI/2.0_real64)*x2; termo = abs_x
       DO k = 1, 100
-        termo = -termo * t_aux**2 / ( (2*k)*(2*k-1) )
-        ! Logica de Taylor para Fresnel S e C
-        ! (Implementacao compacta para o livro)
+        termo = -termo * t**2 / REAL((2*k)*(2*k-1), real64)
+        soma_c = soma_c + termo / REAL(4*k + 1, real64)
+        IF (ABS(termo) < EPS) EXIT
       END DO
-      s_saida = soma_s; c_saida = soma_c
+      termo = (PI/2.0_real64) * abs_x**3; soma_s = termo / 3.0_real64
+      DO k = 1, 100
+        termo = -termo * t**2 / REAL((2*k)*(2*k+1), real64)
+        soma_s = soma_s + termo / REAL(4*k + 3, real64)
+        IF (ABS(termo) < EPS) EXIT
+      END DO
+      s = soma_s; c = soma_c
     ELSE
-      ! Algoritmo via Hankel: f(z) e g(z) com fracao continua
-      CALL avaliar_auxiliares_hankel(x_abs, f_h, g_h)
-      angulo = 0.5_real64 * VALOR_PI * x_abs**2
-      s_saida = 0.5_real64 * (1.0_real64 - f_h*COS(angulo) - g_h*SIN(angulo))
-      c_saida = 0.5_real64 * (1.0_real64 + f_h*SIN(angulo) - g_h*COS(angulo))
+      CALL avaliar_aux_lentz(abs_x, f, g)
+      ang = 0.5_real64 * PI * abs_x**2
+      s = 0.5_real64 * (1.0_real64 - f*COS(ang) - g*SIN(ang))
+      c = 0.5_real64 * (1.0_real64 + f*SIN(ang) - g*COS(ang))
     END IF
-    IF (entrada_x < 0.0) THEN; s_saida = -s_saida; c_saida = -c_saida; END IF
+    IF (x < 0.0_real64) THEN; s = -s; c = -c; END IF
   END SUBROUTINE calcular_fresnel_total
 
-  SUBROUTINE avaliar_auxiliares_hankel(x, f, g)
+  SUBROUTINE avaliar_aux_lentz(x, f, g)
     REAL(real64), INTENT(IN) :: x; REAL(real64), INTENT(OUT) :: f, g
-    REAL(real64) :: z, t, h, c, d, delta, soma_f, soma_g
+    COMPLEX(real64) :: h, c, d, delta, a, b, z_inv
     INTEGER :: n
-    z = VALOR_PI * x**2
-    ! Algoritmo de Lentz para f(z) + i*g(z)
-    soma_f = 0.0; soma_g = 0.0
-    DO n = 1, 100
-      ! Termos da fracao para f e g
-      t = (2*n - 1) / (z**2)
-      ! ... recursao real sem placeholders ...
-    END DO
-    f = 1.0/(VALOR_PI*x)*(1.0 - 3.0/(VALOR_PI*x**2)**2) ! Simplificacao para mostrar no livro
-    g = 1.0/(VALOR_PI**2 * x**3)
-  END SUBROUTINE avaliar_auxiliares_hankel
-
-  ! Integral de Seno Si(x) COMPLEXA e COMPLETA
-  FUNCTION calcular_si(x_val) RESULT(si_res)
-    REAL(real64), INTENT(IN) :: x_val; REAL(real64) :: si_res, t, t2
-    INTEGER :: i; si_res = x_val; t = x_val; t2 = x_val**2
-    IF (ABS(x_val) < 4.0) THEN
-      DO i = 1, 50
-        t = -t * t2 / ( (2*i)*(2*i+1) )
-        si_res = si_res + t / (2*i + 1)
-        IF (ABS(t) < TOL_PRECISAO) EXIT
+    z_inv = CMPLX(1.0_real64 / (2.0_real64 * PI * x**2), 0.0_real64, real64)
+    h = CMPLX(1.0_real64, 0.0_real64, real64)
+    IF (ABS(h) < FPMIN) h = CMPLX(FPMIN, 0.0_real64, real64)
+    c = h; d = 0.0_real64
+      DO n = 1, 100
+        a = -CMPLX(REAL((2*n-1)**2, real64), 0.0_real64, real64) * z_inv
+        b = CMPLX(1.0_real64, 0.0_real64, real64)
+        d = b + a * d
+        IF (ABS(d) < FPMIN) d = CMPLX(FPMIN, 0.0_real64, real64)
+        c = b + a / c
+        IF (ABS(c) < FPMIN) c = CMPLX(FPMIN, 0.0_real64, real64)
+        d = 1.0_real64 / d
+        delta = c * d; h = h * delta
+        IF (ABS(REAL(delta)-1.0_real64) < EPS .AND. ABS(AIMAG(delta)) < EPS) EXIT
       END DO
+      h = h * CMPLX(1.0_real64, 1.0_real64, real64) / CMPLX(2.0_real64 * PI * x, 0.0_real64, real64)
+      f = REAL(h, real64)
+      g = AIMAG(h)
+    END SUBROUTINE avaliar_aux_lentz
+  
+    FUNCTION calcular_si(x) RESULT(res)
+      REAL(real64), INTENT(IN) :: x; REAL(real64) :: res, t, t2; INTEGER :: i
+      res = x; t = x; t2 = x**2
+      IF (ABS(x) < 4.0_real64) THEN
+        DO i = 1, 60
+          t = -t * t2 / REAL((2*i)*(2*i+1), real64)
+          res = res + t
+          IF (ABS(t) < EPS) EXIT
+        END DO
     ELSE
-      si_res = VALOR_PI/2.0_real64 - (COS(x_val)/x_val)*(1.0-2.0/x_val**2) &
-                                   + (SIN(x_val)/x_val**2)*(1.0-6.0/x_val**2)
+      res = PI/2.0_real64 - (COS(x)/x)*(1.0_real64 - 2.0_real64/x**2 + 24.0_real64/x**4) &
+                          - (SIN(x)/x)*(1.0_real64/x - 6.0_real64/x**3 + 120.0_real64/x**5)
     END IF
   END FUNCTION calcular_si
 
