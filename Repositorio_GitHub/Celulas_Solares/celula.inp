@@ -1,0 +1,11 @@
+! Arquivo de Entrada: celula.inp
+&parametros
+  espessura = 0.030    ! cm (300 um)
+  x_juncao  = 0.0001   ! cm (1 um)
+  doping_n  = 1.0d18   ! cm^-3 (Emissor)
+  doping_p  = 1.0d16   ! cm^-3 (Base)
+  temp      = 300.0    ! K
+  v_inicio  = -0.1
+  v_fim     = 0.7
+  n_passos  = 50
+/
